@@ -2,14 +2,12 @@ package bitstamp
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
-// {currency}_balance to get total balance (including reserved)
-// {currency}_available to get available amount
-// {currency}_reserved to get reserved amount
-// {instrument}_fee to get fee on instrument transactions
 type BalanceResult map[string]float64
 
 type transactionBody struct {
@@ -104,6 +102,7 @@ func (u *TransactionResult) UnmarshalJSON(data []byte) error {
 			continue
 		}
 
+		// TODO: replace with toFloat func
 		var parsedValue float64
 
 		switch vv := value.(type) {
@@ -128,17 +127,136 @@ func (u *TransactionResult) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// CancelAllOrdersResult asd
+// TODO: fill Canceled field
 type CancelAllOrdersResult struct {
 	Success  bool          `json:"success"`
 	Canceled []interface{} `json:"canceled"`
 }
 
-// TODO: check transactions type
+type OrderStatus struct {
+	Fee        float64            `json:"fee"`
+	Price      float64            `json:"price"`
+	Datetime   time.Time          `json:"datetime"`
+	Tid        int64              `json:"tid"`
+	Type       int                `json:"type"`
+	Currencies map[string]float64 `json:"currencies"`
+}
+
 type OrderStatusResult struct {
+	Status          string        `json:"status"`
+	ID              int64         `json:"id"`
+	AmountRemaining float64       `json:"amount_remaining,string"`
+	Transactions    []OrderStatus `json:"transactions"`
+}
+
+type orderStatusResult struct {
 	Status          string                   `json:"status"`
 	ID              int64                    `json:"id"`
 	AmountRemaining float64                  `json:"amount_remaining,string"`
 	Transactions    []map[string]interface{} `json:"transactions"`
+}
+
+func interfaceToFloat(data interface{}) (float64, error) {
+	var parsedValue float64
+
+	switch vv := data.(type) {
+	case string:
+		xx, err := strconv.ParseFloat(vv, 64)
+		if err != nil {
+			return 0, err
+		}
+		parsedValue = xx
+
+	case float64:
+		parsedValue = vv
+	case int:
+		parsedValue = float64(vv)
+	default:
+		return 0, fmt.Errorf("wrong type")
+	}
+
+	return parsedValue, nil
+}
+
+// UnmarshalJSON unmarshaller
+// {"status": "Finished", "id": 1373320601649153, "amount_remaining": "0.00000000", "transactions": [{"fee": "0.16277", "price": "36171.43000000", "datetime": "2021-06-19 15:58:44.669000", "usd": "32.55428700", "btc": "0.00090000", "tid": 183814449, "type": 2}]}
+func (os *OrderStatusResult) UnmarshalJSON(data []byte) error {
+	var osr orderStatusResult
+
+	if err := json.Unmarshal(data, &osr); err != nil {
+		return err
+	}
+
+	(*os).ID = osr.ID
+	(*os).Status = osr.Status
+	(*os).AmountRemaining = osr.AmountRemaining
+
+	transactions := make([]OrderStatus, 0)
+
+	for _, transaction := range osr.Transactions {
+
+		currencies := make(map[string]float64)
+		var orderStatus OrderStatus
+
+		for k, v := range transaction {
+
+			// known fields
+			switch k {
+			case "fee":
+				fee, err := interfaceToFloat(v)
+				if err != nil {
+					continue
+				}
+				orderStatus.Fee = fee
+
+			case "price":
+				price, err := interfaceToFloat(v)
+				if err != nil {
+					continue
+				}
+				orderStatus.Price = price
+
+			case "datetime":
+				parsedTime, err := time.Parse("2006-01-02 15:04:05.99", v.(string))
+				if err != nil {
+					continue
+				}
+
+				orderStatus.Datetime = parsedTime
+
+			case "tid":
+				tid, err := interfaceToFloat(v)
+				if err != nil {
+					continue
+				}
+				orderStatus.Tid = int64(tid)
+
+			case "type":
+				tp, err := interfaceToFloat(v)
+				if err != nil {
+					continue
+				}
+				orderStatus.Type = int(tp)
+
+			// the rest fields are supposed to be currency assets affected by trade
+			default:
+				parsedValue, err := interfaceToFloat(v)
+				if err != nil {
+					continue
+				}
+
+				currencies[k] = parsedValue
+			}
+
+		}
+		orderStatus.Currencies = currencies
+		transactions = append(transactions, orderStatus)
+	}
+
+	(*os).Transactions = transactions
+
+	return nil
 }
 
 type OrderCancelResult struct {
@@ -173,13 +291,24 @@ type SellMarketOrderResult struct {
 }
 
 const (
-	SideBuy  = "buy"
-	SideSell = "sell"
+	sideBuy  = "buy"
+	sideSell = "sell"
+
+	OrderSideBuy  = 0
+	OrderSideSell = 1
 
 	ExecDefault = ""
 	ExecDaily   = "daily"
 	ExecFOK     = "fok"
 	ExecIOC     = "ioc"
+
+	OrderStatusFinished = "Finished"
+	OrderStatusOpen     = "Open"
+	OrderStatusCanceled = "Canceled"
+
+	TransactionDeposit    = 0
+	TransactionWithdrawal = 1
+	TransactionTrade      = 2
 )
 
 type PlaceOrder struct {

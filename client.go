@@ -199,8 +199,6 @@ func (pc *PrivateClient) CancelAllOrders() (CancelAllOrdersResult, error) {
 		return CancelAllOrdersResult{}, err
 	}
 
-	fmt.Println(resp)
-
 	var status CancelAllOrdersResult
 
 	if err := json.Unmarshal([]byte(resp), &status); err != nil {
@@ -214,9 +212,9 @@ func (pc *PrivateClient) limitOrder(side string, order PlaceOrder) (PlaceOrderRe
 	path := ""
 
 	switch side {
-	case SideBuy:
+	case sideBuy:
 		path = fmt.Sprintf("/api/v2/buy/%s/", order.Symbol)
-	case SideSell:
+	case sideSell:
 		path = fmt.Sprintf("/api/v2/sell/%s/", order.Symbol)
 	default:
 		return PlaceOrderResult{}, fmt.Errorf("wrong side")
@@ -255,7 +253,7 @@ func (pc *PrivateClient) limitOrder(side string, order PlaceOrder) (PlaceOrderRe
 }
 
 func (pc *PrivateClient) BuyLimitOrder(order PlaceOrder) (BuyLimitOrderResult, error) {
-	status, err := pc.limitOrder(SideBuy, order)
+	status, err := pc.limitOrder(sideBuy, order)
 	if err != nil {
 		return BuyLimitOrderResult{}, err
 	}
@@ -264,7 +262,7 @@ func (pc *PrivateClient) BuyLimitOrder(order PlaceOrder) (BuyLimitOrderResult, e
 }
 
 func (pc *PrivateClient) SellLimitOrder(order PlaceOrder) (SellLimitOrderResult, error) {
-	status, err := pc.limitOrder(SideSell, order)
+	status, err := pc.limitOrder(sideSell, order)
 	if err != nil {
 		return SellLimitOrderResult{}, err
 	}
@@ -276,9 +274,9 @@ func (pc *PrivateClient) marketOrder(side string, symbol string, amount string) 
 	path := ""
 
 	switch side {
-	case SideBuy:
+	case sideBuy:
 		path = fmt.Sprintf("/api/v2/buy/market/%s/", symbol)
-	case SideSell:
+	case sideSell:
 		path = fmt.Sprintf("/api/v2/sell/market/%s/", symbol)
 	default:
 		return PlaceOrderResult{}, fmt.Errorf("wrong side")
@@ -301,7 +299,7 @@ func (pc *PrivateClient) marketOrder(side string, symbol string, amount string) 
 }
 
 func (pc *PrivateClient) BuyMarketOrder(symbol string, amount string) (BuyMarketOrderResult, error) {
-	status, err := pc.marketOrder(SideBuy, symbol, amount)
+	status, err := pc.marketOrder(sideBuy, symbol, amount)
 	if err != nil {
 		return BuyMarketOrderResult{}, err
 	}
@@ -310,7 +308,7 @@ func (pc *PrivateClient) BuyMarketOrder(symbol string, amount string) (BuyMarket
 }
 
 func (pc *PrivateClient) SellMarketOrder(symbol string, amount string) (SellMarketOrderResult, error) {
-	status, err := pc.marketOrder(SideSell, symbol, amount)
+	status, err := pc.marketOrder(sideSell, symbol, amount)
 	if err != nil {
 		return SellMarketOrderResult{}, err
 	}

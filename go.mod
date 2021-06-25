@@ -1,4 +1,4 @@
-module vcshl.b2broker.tech/ykuznetsov/bitstamp
+module github.com/b2broker/bitstamp
 
 go 1.15
 
