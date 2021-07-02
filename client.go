@@ -34,9 +34,10 @@ type PrivateClient struct {
 	APIKey    string
 	SecretKey string
 	client    *webclient.Webclient
+	observer  OrderObserver
 }
 
-func NewPrivateClient(apiKey string, secretKey string) *PrivateClient {
+func NewPrivateClient(apiKey string, secretKey string, observer OrderObserver) *PrivateClient {
 	return &PrivateClient{
 		APIKey:    apiKey,
 		SecretKey: secretKey,
@@ -45,6 +46,7 @@ func NewPrivateClient(apiKey string, secretKey string) *PrivateClient {
 			UseKeepAlive:   false,
 			FollowRedirect: false,
 		}.New(),
+		observer: observer,
 	}
 }
 
@@ -238,6 +240,10 @@ func (pc *PrivateClient) limitOrder(side string, order PlaceOrder) (PlaceOrderRe
 	params["price"] = order.Price
 	params["amount"] = order.Amount
 
+	// TODO: handle?
+	_ = pc.observer.Lock()
+	defer pc.observer.Unlock()
+
 	resp, err := pc.privateRequest(path, params)
 	if err != nil {
 		return PlaceOrderResult{}, err
@@ -248,6 +254,9 @@ func (pc *PrivateClient) limitOrder(side string, order PlaceOrder) (PlaceOrderRe
 	if err := json.Unmarshal([]byte(resp), &status); err != nil {
 		return PlaceOrderResult{}, err
 	}
+
+	// TODO: handle?
+	_ = pc.observer.Observe(side, order.Symbol, status.ID)
 
 	return status, nil
 }
@@ -282,6 +291,9 @@ func (pc *PrivateClient) marketOrder(side string, symbol string, amount string) 
 		return PlaceOrderResult{}, fmt.Errorf("wrong side")
 	}
 
+	// TODO: handle?
+	_ = pc.observer.Lock()
+	defer pc.observer.Unlock()
 	resp, err := pc.privateRequest(path, map[string]string{
 		"amount": amount,
 	})
@@ -294,6 +306,9 @@ func (pc *PrivateClient) marketOrder(side string, symbol string, amount string) 
 	if err := json.Unmarshal([]byte(resp), &status); err != nil {
 		return PlaceOrderResult{}, err
 	}
+
+	// TODO: handle?
+	_ = pc.observer.Observe(side, symbol, status.ID)
 
 	return status, nil
 }
