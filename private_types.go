@@ -317,3 +317,91 @@ type PlaceOrder struct {
 	ExecType string
 	Symbol   string
 }
+
+type CommonResult interface {
+	GetID() int64
+	GetDateTime() string
+	GetType() int
+	GetPrice() float64
+	GetAmount() float64
+}
+
+func (r BuyLimitOrderResult) GetID() int64 {
+	return r.ID
+}
+
+func (r BuyLimitOrderResult) GetDateTime() string {
+	return r.DateTime
+}
+
+func (r BuyLimitOrderResult) GetType() int {
+	return r.Type
+}
+
+func (r BuyLimitOrderResult) GetPrice() float64 {
+	return r.Price
+}
+
+func (r BuyLimitOrderResult) GetAmount() float64 {
+	return r.Amount
+}
+
+func (r SellLimitOrderResult) GetID() int64 {
+	return r.ID
+}
+
+func (r SellLimitOrderResult) GetDateTime() string {
+	return r.DateTime
+}
+
+func (r SellLimitOrderResult) GetType() int {
+	return r.Type
+}
+
+func (r SellLimitOrderResult) GetPrice() float64 {
+	return r.Price
+}
+
+func (r SellLimitOrderResult) GetAmount() float64 {
+	return r.Amount
+}
+
+func (r BuyMarketOrderResult) GetID() int64 {
+	return r.ID
+}
+
+func (r BuyMarketOrderResult) GetDateTime() string {
+	return r.DateTime
+}
+
+func (r BuyMarketOrderResult) GetType() int {
+	return r.Type
+}
+
+func (r BuyMarketOrderResult) GetPrice() float64 {
+	return r.Price
+}
+
+func (r BuyMarketOrderResult) GetAmount() float64 {
+	return r.Amount
+}
+
+func (r SellMarketOrderResult) GetID() int64 {
+	return r.ID
+}
+
+func (r SellMarketOrderResult) GetDateTime() string {
+	return r.DateTime
+}
+
+func (r SellMarketOrderResult) GetType() int {
+	return r.Type
+}
+
+func (r SellMarketOrderResult) GetPrice() float64 {
+	return r.Price
+}
+
+func (r SellMarketOrderResult) GetAmount() float64 {
+	return r.Amount
+}
