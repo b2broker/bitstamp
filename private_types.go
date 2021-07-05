@@ -317,3 +317,31 @@ type PlaceOrder struct {
 	ExecType string
 	Symbol   string
 }
+
+type CommonResult interface {
+	GetID() int64
+	GetDateTime() string
+	GetType() int
+	GetPrice() float64
+	GetAmount() float64
+}
+
+func (p PlaceOrderResult) GetID() int64 {
+	return p.ID
+}
+
+func (p PlaceOrderResult) GetDateTime() string {
+	return p.DateTime
+}
+
+func (p PlaceOrderResult) GetType() int {
+	return p.Type
+}
+
+func (p PlaceOrderResult) GetPrice() float64 {
+	return p.Price
+}
+
+func (p PlaceOrderResult) GetAmount() float64 {
+	return p.Amount
+}
