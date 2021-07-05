@@ -102,22 +102,22 @@ func NewWebsocketObserver() *WebsocketObserver {
 // NilObserver пустая реализации без синхронизаций. Используется, если получение трейдов из WebSocket не нужен
 type NilObserver struct{}
 
-func (os *NilObserver) Observe(_ string, _ string, _ int64) error {
+func (n *NilObserver) Observe(_ string, _ string, _ int64) error {
 	return nil
 }
 
-func (os *NilObserver) Delete(_ int64) error {
+func (n *NilObserver) Delete(_ int64) error {
 	return nil
 }
 
-func (os *NilObserver) Lock() error {
+func (n *NilObserver) Lock() error {
 	return nil
 }
 
-func (os *NilObserver) Unlock() {
+func (n *NilObserver) Unlock() {
 
 }
 
-func (w *NilObserver) IsObservable(orderID int64) bool {
+func (n *NilObserver) IsObservable(orderID int64) bool {
 	return false
 }
