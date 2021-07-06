@@ -1,12 +1,13 @@
 package bitstamp
 
 import (
+	"testing"
 	"time"
 
 	"github.com/sirupsen/logrus"
 )
 
-func ExampleObserver() {
+func TestObserver(t *testing.T) {
 	logrus.SetLevel(logrus.DebugLevel)
 	wsObserver := NewWebsocketObserver()
 

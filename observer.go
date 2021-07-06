@@ -29,7 +29,8 @@ type serverableObject struct {
 	orderID int64
 }
 
-// WebsocketObserver реализация для Websocket
+// WebsocketObserver реализация OrderObserver для Websocket.
+// Используется для синхронизации WS & REST
 type WebsocketObserver struct {
 	items   map[int64]serverableObject
 	itemsMu sync.RWMutex
@@ -99,7 +100,7 @@ func NewWebsocketObserver() *WebsocketObserver {
 	}
 }
 
-// NilObserver пустая реализации без синхронизаций. Используется, если получение трейдов из WebSocket не нужен
+// NilObserver пустая реализации без синхронизаций. Используется, если получение трейдов из WebSocket не нужен.
 type NilObserver struct{}
 
 func (n *NilObserver) Observe(_ string, _ string, _ int64) error {
