@@ -38,7 +38,7 @@ func convertMessage(data []byte) (Fill, error) {
 	}
 
 	symbol := strings.Replace(fill.Channel, "live_trades_", "", 1)
-	createdAt := time.Unix(fill.Data.Timestamp/1000, fill.Data.Timestamp%1000*1000000)
+	createdAt := time.Unix(fill.Data.Timestamp/1000000, fill.Data.Timestamp%1000*1000000)
 
 	var side string
 	if fill.Data.Type == OrderSideBuy {
