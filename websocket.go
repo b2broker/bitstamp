@@ -64,14 +64,21 @@ func (ws *Websocket) subscribe(conn *WSConn) error {
 // Синхронизируется с OrderObserver
 func (ws *Websocket) Run(reconnectDelay time.Duration) error {
 	for {
+		// Прежде чем подключиться к websocket'у observer блокируется, чтобы не потерять исполнения,
+		// которые могут прийти до успешного подключения к ws
 		ws.logger.Info("connecting")
 		if err := ws.observer.Lock(); err != nil {
 			time.Sleep(reconnectDelay)
 			continue
 		}
+
+		// если connection не удался, то через reconnectDelay будет повторная попытка подключения
 		conn, err := ws.connect()
 		if err != nil {
 			time.Sleep(reconnectDelay)
+			// TODO: если тут разблокировать, то это теоритически race-condition (ордер можно успеть выставить до
+			//  вызова Lock в начале процедуры). Поэтому если блокировка была установлена, то ее не нужно снимать тут
+			//  и не нужно повторно устанавливать в начале процедуры
 			ws.observer.Unlock()
 			continue
 		}
@@ -82,7 +89,7 @@ func (ws *Websocket) Run(reconnectDelay time.Duration) error {
 
 		ws.observer.Unlock()
 
-		incoming := conn.RunReader()
+		incoming := conn.RunReader(time.Second * 15)
 		for msg := range incoming {
 			ws.logger.WithField("body", string(msg)).Debug("got msg")
 			parsedMsg, err := convertMessage(msg)
@@ -90,6 +97,7 @@ func (ws *Websocket) Run(reconnectDelay time.Duration) error {
 				ws.logger.WithError(err).Error("could not convert message")
 			}
 
+			// если ID ордера найдено в OrderObserver, то исполнение отправляется наружу
 			if ws.observer.IsObservable(parsedMsg.BuyOrderID) {
 				parsedMsg.OrderID = parsedMsg.BuyOrderID
 				ws.fills <- parsedMsg
