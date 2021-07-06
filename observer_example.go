@@ -1,17 +1,16 @@
 package bitstamp
 
 import (
-	"testing"
 	"time"
 
 	"github.com/sirupsen/logrus"
 )
 
-func TestObserver(t *testing.T) {
+func WebsocketObserverExample() {
 	logrus.SetLevel(logrus.DebugLevel)
 	wsObserver := NewWebsocketObserver()
 
-	wsClient := NewWSClient(wsObserver, "btcusdc", "btcusdt", "btcusd")
+	wsClient := NewWSClient(wsObserver, "btcusdc")
 	go func() {
 		if err := wsClient.Run(time.Second * 10); err != nil {
 			logrus.WithError(err).Error("got an error on WebSocket-client")
