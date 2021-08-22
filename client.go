@@ -212,13 +212,13 @@ func (pc *PrivateClient) CancelAllOrders() (CancelAllOrdersResult, error) {
 	return status, nil
 }
 
-func (pc *PrivateClient) limitOrder(side string, order PlaceOrder) (PlaceOrderResult, error) {
+func (pc *PrivateClient) limitOrder(side OrderSide, order PlaceOrderRequest) (PlaceOrderResult, error) {
 	path := ""
 
 	switch side {
-	case sideBuy:
+	case Buy:
 		path = fmt.Sprintf("/api/v2/buy/%s/", order.Symbol)
-	case sideSell:
+	case Sell:
 		path = fmt.Sprintf("/api/v2/sell/%s/", order.Symbol)
 	default:
 		return PlaceOrderResult{}, fmt.Errorf("wrong side")
@@ -239,8 +239,8 @@ func (pc *PrivateClient) limitOrder(side string, order PlaceOrder) (PlaceOrderRe
 		params["ioc_order"] = "True"
 	}
 
-	params["price"] = order.Price
-	params["amount"] = order.Amount
+	params["price"] = fmt.Sprintf("%f", order.Price)
+	params["amount"] = fmt.Sprintf("%f", order.Amount)
 
 	// TODO: handle?
 	_ = pc.observer.Lock()
@@ -258,36 +258,36 @@ func (pc *PrivateClient) limitOrder(side string, order PlaceOrder) (PlaceOrderRe
 	}
 
 	// TODO: handle?
-	_ = pc.observer.Observe(side, order.Symbol, status.ID)
+	_ = pc.observer.Observe(string(side), order.Symbol, status.ID)
 
 	return status, nil
 }
 
-func (pc *PrivateClient) BuyLimitOrder(order PlaceOrder) (BuyLimitOrderResult, error) {
-	status, err := pc.limitOrder(sideBuy, order)
+func (pc *PrivateClient) BuyLimitOrder(order PlaceOrderRequest) (PlaceOrderResult, error) {
+	status, err := pc.limitOrder(Buy, order)
 	if err != nil {
-		return BuyLimitOrderResult{}, err
+		return PlaceOrderResult{}, err
 	}
 
-	return BuyLimitOrderResult{status}, nil
+	return status, nil
 }
 
-func (pc *PrivateClient) SellLimitOrder(order PlaceOrder) (SellLimitOrderResult, error) {
-	status, err := pc.limitOrder(sideSell, order)
+func (pc *PrivateClient) SellLimitOrder(order PlaceOrderRequest) (PlaceOrderResult, error) {
+	status, err := pc.limitOrder(Sell, order)
 	if err != nil {
-		return SellLimitOrderResult{}, err
+		return PlaceOrderResult{}, err
 	}
 
-	return SellLimitOrderResult{status}, nil
+	return status, nil
 }
 
-func (pc *PrivateClient) marketOrder(side string, symbol string, amount string) (PlaceOrderResult, error) {
+func (pc *PrivateClient) marketOrder(side OrderSide, symbol string, amount string) (PlaceOrderResult, error) {
 	path := ""
 
 	switch side {
-	case sideBuy:
+	case Buy:
 		path = fmt.Sprintf("/api/v2/buy/market/%s/", symbol)
-	case sideSell:
+	case Sell:
 		path = fmt.Sprintf("/api/v2/sell/market/%s/", symbol)
 	default:
 		return PlaceOrderResult{}, fmt.Errorf("wrong side")
@@ -310,25 +310,71 @@ func (pc *PrivateClient) marketOrder(side string, symbol string, amount string) 
 	}
 
 	// TODO: handle?
-	_ = pc.observer.Observe(side, symbol, status.ID)
+	_ = pc.observer.Observe(string(side), symbol, status.ID)
 
 	return status, nil
 }
 
-func (pc *PrivateClient) BuyMarketOrder(symbol string, amount string) (BuyMarketOrderResult, error) {
-	status, err := pc.marketOrder(sideBuy, symbol, amount)
+func (pc *PrivateClient) BuyMarketOrder(symbol string, amount string) (PlaceOrderResult, error) {
+	status, err := pc.marketOrder(Buy, symbol, amount)
 	if err != nil {
-		return BuyMarketOrderResult{}, err
+		return PlaceOrderResult{}, err
 	}
 
-	return BuyMarketOrderResult{status}, nil
+	return status, nil
 }
 
-func (pc *PrivateClient) SellMarketOrder(symbol string, amount string) (SellMarketOrderResult, error) {
-	status, err := pc.marketOrder(sideSell, symbol, amount)
+func (pc *PrivateClient) SellMarketOrder(symbol string, amount string) (PlaceOrderResult, error) {
+	status, err := pc.marketOrder(Sell, symbol, amount)
 	if err != nil {
-		return SellMarketOrderResult{}, err
+		return PlaceOrderResult{}, err
 	}
 
-	return SellMarketOrderResult{status}, nil
+	return status, nil
+}
+
+func (pc *PrivateClient) PlaceOrder(opts PlaceOrderRequest) (PlaceOrderResult, error) {
+	if opts.Symbol == "" {
+		return PlaceOrderResult{}, fmt.Errorf("symbol isn't specified")
+	}
+
+	if opts.Amount <= 0 {
+		return PlaceOrderResult{}, fmt.Errorf("amount isn't specified")
+	}
+
+	switch opts.Type {
+	case Limit:
+		if opts.Price <= 0 {
+			return PlaceOrderResult{}, fmt.Errorf("price can't be 0 for limit orders")
+		}
+
+		switch opts.Side {
+
+		// limit + buy
+		case Buy:
+			return pc.BuyLimitOrder(opts)
+		// limit + sell
+		case Sell:
+			return pc.SellLimitOrder(opts)
+
+		default:
+			return PlaceOrderResult{}, ErrNoSide
+		}
+	case Market:
+		switch opts.Side {
+
+		// market + buy
+		case Buy:
+			return pc.BuyMarketOrder(opts.Symbol, fmt.Sprintf("%f", opts.Amount))
+
+		// market + sell
+		case Sell:
+			return pc.SellMarketOrder(opts.Symbol, fmt.Sprintf("%f", opts.Amount))
+
+		default:
+			return PlaceOrderResult{}, ErrNoSide
+		}
+	default:
+		return PlaceOrderResult{}, fmt.Errorf("order type isn't specified")
+	}
 }
