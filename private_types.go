@@ -2,11 +2,14 @@ package bitstamp
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 )
+
+var ErrNoSide = errors.New("order side isn't specified")
 
 type BalanceResult map[string]float64
 
@@ -274,26 +277,21 @@ type PlaceOrderResult struct {
 	Amount   float64 `json:"amount,string"`
 }
 
-type BuyLimitOrderResult struct {
-	PlaceOrderResult
-}
-
-type SellLimitOrderResult struct {
-	PlaceOrderResult
-}
-
-type BuyMarketOrderResult struct {
-	PlaceOrderResult
-}
-
-type SellMarketOrderResult struct {
-	PlaceOrderResult
-}
+type OrderType string
 
 const (
-	sideBuy  = "buy"
-	sideSell = "sell"
+	Market OrderType = "market"
+	Limit  OrderType = "limit"
+)
 
+type OrderSide string
+
+const (
+	Buy  OrderSide = "buy"
+	Sell OrderSide = "sell"
+)
+
+const (
 	OrderSideBuy  = 0
 	OrderSideSell = 1
 
@@ -311,11 +309,13 @@ const (
 	TransactionTrade      = 2
 )
 
-type PlaceOrder struct {
-	Price    string
-	Amount   string
-	ExecType string
+type PlaceOrderRequest struct {
+	Price    float64
+	Amount   float64
 	Symbol   string
+	Side     OrderSide
+	Type     OrderType
+	ExecType string
 }
 
 type CommonResult interface {

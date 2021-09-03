@@ -43,5 +43,17 @@ func WebsocketObserverExample() {
 		logrus.Info("order has been placed: ", report2)
 	}
 
+	report3, err := bsSvc.PlaceOrder(PlaceOrderRequest{
+		Amount: 0.0009,
+		Symbol: "btcusdc",
+		Side:   Buy,
+		Type:   Market,
+	})
+	if err != nil {
+		logrus.WithError(err).Error("could not place order")
+	} else {
+		logrus.Info("order has been placed: ", report3)
+	}
+
 	select {}
 }
