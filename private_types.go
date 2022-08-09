@@ -345,3 +345,9 @@ func (p PlaceOrderResult) GetPrice() float64 {
 func (p PlaceOrderResult) GetAmount() float64 {
 	return p.Amount
 }
+
+type GenerateWSTokenResult struct {
+	Token    string `json:"token"`
+	ValidSec int    `json:"valid_sec"` // Validity of token in seconds.
+	UserID   int    `json:"user_id"`
+}
