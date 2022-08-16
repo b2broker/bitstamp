@@ -3,13 +3,14 @@
 # Получение трейдов из Websocket
 ```go
 
-func ExampleObserver() {
+func Example() {
 	logrus.SetLevel(logrus.DebugLevel)
-	wsObserver := NewWebsocketObserver()
 
-	wsClient := NewWSClient(wsObserver, "btcusdc", "btcusdt", "btcusd")
+	bsSvc := bitstamp.NewPrivateClient("_", "_")
+	wsClient := bitstamp.NewWSClient("btcusdc")
+
 	go func() {
-		if err := wsClient.Run(time.Second * 10); err != nil {
+		if err := wsClient.Run(bsSvc, time.Second*10); err != nil {
 			logrus.WithError(err).Error("got an error on WebSocket-client")
 		}
 	}()
@@ -21,8 +22,6 @@ func ExampleObserver() {
 	}()
 
 	time.Sleep(time.Second * 4)
-
-	bsSvc := NewPrivateClient("_", "_", wsObserver)
 
 	report, err := bsSvc.BuyMarketOrder("btcusdc", "0.0009")
 	if err != nil {

@@ -34,10 +34,9 @@ type PrivateClient struct {
 	APIKey    string
 	SecretKey string
 	client    *webclient.Webclient
-	observer  OrderObserver
 }
 
-func NewPrivateClient(apiKey string, secretKey string, observer OrderObserver) *PrivateClient {
+func NewPrivateClient(apiKey string, secretKey string) *PrivateClient {
 	return &PrivateClient{
 		APIKey:    apiKey,
 		SecretKey: secretKey,
@@ -46,7 +45,6 @@ func NewPrivateClient(apiKey string, secretKey string, observer OrderObserver) *
 			UseKeepAlive:   false,
 			FollowRedirect: false,
 		}.New(),
-		observer: observer,
 	}
 }
 
@@ -242,10 +240,6 @@ func (pc *PrivateClient) limitOrder(side OrderSide, order PlaceOrderRequest) (Pl
 	params["price"] = fmt.Sprintf("%f", order.Price)
 	params["amount"] = fmt.Sprintf("%f", order.Amount)
 
-	// TODO: handle?
-	_ = pc.observer.Lock()
-	defer pc.observer.Unlock()
-
 	resp, err := pc.privateRequest(path, params)
 	if err != nil {
 		return PlaceOrderResult{}, err
@@ -256,9 +250,6 @@ func (pc *PrivateClient) limitOrder(side OrderSide, order PlaceOrderRequest) (Pl
 	if err := json.Unmarshal([]byte(resp), &status); err != nil {
 		return PlaceOrderResult{}, err
 	}
-
-	// TODO: handle?
-	_ = pc.observer.Observe(string(side), order.Symbol, status.ID)
 
 	return status, nil
 }
@@ -293,9 +284,6 @@ func (pc *PrivateClient) marketOrder(side OrderSide, symbol string, amount strin
 		return PlaceOrderResult{}, fmt.Errorf("wrong side")
 	}
 
-	// TODO: handle?
-	_ = pc.observer.Lock()
-	defer pc.observer.Unlock()
 	resp, err := pc.privateRequest(path, map[string]string{
 		"amount": amount,
 	})
@@ -308,9 +296,6 @@ func (pc *PrivateClient) marketOrder(side OrderSide, symbol string, amount strin
 	if err := json.Unmarshal([]byte(resp), &status); err != nil {
 		return PlaceOrderResult{}, err
 	}
-
-	// TODO: handle?
-	_ = pc.observer.Observe(string(side), symbol, status.ID)
 
 	return status, nil
 }
@@ -377,4 +362,19 @@ func (pc *PrivateClient) PlaceOrder(opts PlaceOrderRequest) (PlaceOrderResult, e
 	default:
 		return PlaceOrderResult{}, fmt.Errorf("order type isn't specified")
 	}
+}
+
+func (pc *PrivateClient) GenerateWSToken() (*GenerateWSTokenResult, error) {
+	resp, err := pc.privateRequest("/api/v2/websockets_token/", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var result GenerateWSTokenResult
+
+	if err := json.Unmarshal([]byte(resp), &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
