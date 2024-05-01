@@ -34,7 +34,12 @@ func main() {
 		logrus.Info("Balances: ", balances)
 	}
 
-	report, err := bsSvc.BuyMarketOrder("btcusdt", "0.0009")
+	report, err := bsSvc.PlaceOrder(bitstamp.PlaceOrderRequest{
+		Amount: 0.00001,
+		Side:   bitstamp.Buy,
+		Symbol: "btcusdt",
+		Type:   bitstamp.Market,
+	})
 	if err != nil {
 		logrus.WithError(err).Error("could not place order")
 	} else {
@@ -43,7 +48,12 @@ func main() {
 
 	time.Sleep(time.Second * 1)
 
-	report2, err := bsSvc.SellMarketOrder("btcusdt", "0.0009")
+	report2, err := bsSvc.PlaceOrder(bitstamp.PlaceOrderRequest{
+		Amount: 0.00001,
+		Side:   bitstamp.Sell,
+		Symbol: "btcusdt",
+		Type:   bitstamp.Market,
+	})
 	if err != nil {
 		logrus.WithError(err).Error("could not place order")
 	} else {
@@ -51,10 +61,12 @@ func main() {
 	}
 
 	report3, err := bsSvc.PlaceOrder(bitstamp.PlaceOrderRequest{
-		Amount: 0.0009,
-		Symbol: "btcusdt",
-		Side:   bitstamp.Buy,
-		Type:   bitstamp.Market,
+		Amount:   0.00001,
+		ExecType: bitstamp.ExecFOK,
+		Price:    1,
+		Side:     bitstamp.Sell,
+		Symbol:   "btcusdt",
+		Type:     bitstamp.Limit,
 	})
 	if err != nil {
 		logrus.WithError(err).Error("could not place order")
