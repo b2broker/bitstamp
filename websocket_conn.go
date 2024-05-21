@@ -97,3 +97,7 @@ func (ws *WSConn) RunReader(wsTimeout time.Duration) <-chan []byte {
 func (ws *WSConn) SendMessage(msg string) error {
 	return ws.conn.WriteMessage(websocket.TextMessage, []byte(msg))
 }
+
+func (ws *WSConn) Stop() {
+	_ = ws.conn.Close()
+}
