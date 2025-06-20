@@ -270,11 +270,12 @@ type OrderCancelResult struct {
 }
 
 type PlaceOrderResult struct {
-	ID       int64   `json:"id,string"`
-	DateTime string  `json:"datetime"`
-	Type     int     `json:"type,string"`
-	Price    float64 `json:"price,string"`
-	Amount   float64 `json:"amount,string"`
+	ID            int64   `json:"id,string"`
+	DateTime      string  `json:"datetime"`
+	Type          int     `json:"type,string"`
+	Price         float64 `json:"price,string"`
+	Amount        float64 `json:"amount,string"`
+	ClientOrderID string  `json:"client_order_id"`
 }
 
 type OrderType string
@@ -310,12 +311,13 @@ const (
 )
 
 type PlaceOrderRequest struct {
-	Price    float64
-	Amount   float64
-	Symbol   string
-	Side     OrderSide
-	Type     OrderType
-	ExecType string
+	Price         float64
+	Amount        float64
+	Symbol        string
+	Side          OrderSide
+	Type          OrderType
+	ExecType      string
+	ClientOrderID string
 }
 
 type CommonResult interface {
@@ -344,6 +346,10 @@ func (p PlaceOrderResult) GetPrice() float64 {
 
 func (p PlaceOrderResult) GetAmount() float64 {
 	return p.Amount
+}
+
+func (p PlaceOrderRequest) GetClientOrderID() string {
+	return p.ClientOrderID
 }
 
 type GenerateWSTokenResult struct {

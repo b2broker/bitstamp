@@ -179,14 +179,15 @@ func (ws *Websocket) handleMessage(msg []byte) {
 
 // Fill трейд, который получает клиент из библиотеки
 type Fill struct {
-	OrderID  int64
-	TradeID  int64
-	Symbol   string
-	Price    float64
-	Size     float64
-	Fee      float64
-	Side     string
-	FilledAt time.Time
+	OrderID       int64
+	TradeID       int64
+	ClientOrderID string
+	Symbol        string
+	Price         float64
+	Size          float64
+	Fee           float64
+	Side          string
+	FilledAt      time.Time
 }
 
 // Fills возвращает канал
