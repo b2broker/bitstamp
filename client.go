@@ -239,6 +239,7 @@ func (pc *PrivateClient) limitOrder(order PlaceOrderRequest) (PlaceOrderResult, 
 
 	params["price"] = fmt.Sprintf("%f", order.Price)
 	params["amount"] = fmt.Sprintf("%f", order.Amount)
+	params["client_order_id"] = order.ClientOrderID
 
 	resp, err := pc.privateRequest(path, params)
 	if err != nil {
@@ -268,7 +269,8 @@ func (pc *PrivateClient) marketOrder(order PlaceOrderRequest) (PlaceOrderResult,
 
 	amount := fmt.Sprintf("%f", order.Amount)
 	resp, err := pc.privateRequest(path, map[string]string{
-		"amount": amount,
+		"amount":          amount,
+		"client_order_id": order.ClientOrderID,
 	})
 	if err != nil {
 		return PlaceOrderResult{}, err

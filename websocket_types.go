@@ -18,7 +18,7 @@ type bitstampFill struct {
 	Data    struct {
 		ID            int64  `json:"id"`
 		OrderID       int64  `json:"buy_order_id"`
-		ClientOrderID int64  `json:"client_order_id"`
+		ClientOrderID string `json:"client_order_id"`
 		Amount        string `json:"amount"`
 		Price         string `json:"price"`
 		Fee           string `json:"fee"`
@@ -62,14 +62,15 @@ func convertMessage(data []byte) (Fill, error) {
 	}
 
 	return Fill{
-		TradeID:  fill.Data.ID,
-		OrderID:  fill.Data.OrderID,
-		Symbol:   symbol,
-		Price:    price,
-		Size:     amount,
-		Fee:      fee,
-		Side:     fill.Data.Side,
-		FilledAt: createdAt,
+		TradeID:       fill.Data.ID,
+		OrderID:       fill.Data.OrderID,
+		ClientOrderID: fill.Data.ClientOrderID,
+		Symbol:        symbol,
+		Price:         price,
+		Size:          amount,
+		Fee:           fee,
+		Side:          fill.Data.Side,
+		FilledAt:      createdAt,
 	}, nil
 }
 
