@@ -10,7 +10,7 @@ import (
 
 const (
 	eventTrade        = "trade"
-	eventSubscription = "bts:subscription_succeede"
+	eventSubscription = "bts:subscription_succeeded"
 )
 
 type bitstampFill struct {
