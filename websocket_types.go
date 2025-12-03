@@ -1,7 +1,6 @@
 package bitstamp
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -28,17 +27,7 @@ type bitstampFill struct {
 	Event string `json:"event"`
 }
 
-func convertMessage(data []byte) (Fill, error) {
-	var fill bitstampFill
-
-	if err := json.Unmarshal(data, &fill); err != nil {
-		return Fill{}, err
-	}
-
-	if fill.Event != eventTrade && fill.Event != eventSubscription {
-		return Fill{}, fmt.Errorf("incompatible event-type:%+v", fill)
-	}
-
+func convertMessage(fill *bitstampFill) (Fill, error) {
 	symbol := strings.Replace(fill.Channel, "private-my_trades_", "", 1)
 	createdAt := time.Unix(fill.Data.Timestamp/1000000, fill.Data.Timestamp%1000*1000000)
 

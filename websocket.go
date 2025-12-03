@@ -169,12 +169,26 @@ func (ws *Websocket) connect() (*WSConn, error) {
 func (ws *Websocket) handleMessage(msg []byte) {
 	ws.logger.WithField("body", string(msg)).Debug("got msg")
 
-	parsedMsg, err := convertMessage(msg)
-	if err != nil {
-		ws.logger.WithError(err).Error("could not convert message")
+	var rawMsg bitstampFill
+	if err := json.Unmarshal(msg, &rawMsg); err != nil {
+		ws.logger.WithError(err).Error("could not unmarshal message")
+		return
 	}
 
-	ws.fills <- parsedMsg
+	switch rawMsg.Event {
+	case eventSubscription:
+		// Skip subscription confirmation events
+		return
+	case eventTrade:
+		parsedMsg, err := convertMessage(&rawMsg)
+		if err != nil {
+			ws.logger.WithError(err).Error("could not convert message")
+			return
+		}
+		ws.fills <- parsedMsg
+	default:
+		ws.logger.WithField("event", rawMsg.Event).Warn("unknown event type")
+	}
 }
 
 // Fill трейд, который получает клиент из библиотеки
